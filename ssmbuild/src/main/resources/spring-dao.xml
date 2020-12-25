@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--1.import database.properties-->
+    <context:property-placeholder location="classpath:database.properties"/>
+    <!--2.connecting pool -
+    dbcp semi-automatic, cannot connect automatically
+    c3p0 automation, load configure file automatically
+    druid -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!-- c3p0's private property-->
+        <property name="maxPoolSize" value="30"/>
+        <property name="minPoolSize" value="3"/>
+        <!-- close connection cannot commit automatically-->
+        <property name="autoCommitOnClose" value="false"/>
+        <!-- timeout-->
+        <property name="checkoutTimeout" value="12000"/>
+        <!-- retry times-->
+        <property name="acquireRetryAttempts" value="5"/>
+
+    </bean>
+    <!--    3.sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--        bind mybatis configure file-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--        <property name="mapperLocations" value="classpath:com/kuang/dao/*.xml"/>-->
+
+    </bean>
+
+    <!--    4.configure dao interface scanning package to dynamically implement dao interface to spring container-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--inject sqlSessionFactory-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--scan dao package-->
+        <property name="basePackage" value="com.kuang.dao"/>
+    </bean>
+</beans>

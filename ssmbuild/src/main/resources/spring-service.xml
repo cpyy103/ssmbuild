@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<!--    <import resource="classpath:spring-dao.xml"/>-->
+
+    <!-- 1.scan the service package-->
+    <context:component-scan base-package="com.kuang.service"/>
+    <!--    2.inject the class to spring, can be configured or annotated-->
+    <!--    add Annotation "Service" on BookServiceImpl-->
+    <!--    add Annotation "Autowired" on bookMapper-->
+    <bean id="BookServiceImpl" class="com.kuang.service.BookServiceImpl">
+        <property name="bookMapper" ref="bookMapper"/>
+    </bean>
+
+    <!--3.declarative transaction-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!--inject datasource-->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--   4.aop transaction support-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <!--        configure transaction for-->
+        <tx:attributes>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--    configure transaction cut point-->
+    <aop:config>
+        <aop:pointcut id="txPointCut" expression="execution(* com.kuang.dao.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+    </aop:config>
+
+</beans>
